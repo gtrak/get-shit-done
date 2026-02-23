@@ -9,7 +9,7 @@ Mark a shipped version (v1.0, v1.1, v2.0) as complete. Creates historical record
 1. templates/milestone.md
 2. templates/milestone-archive.md
 3. `.planning/ROADMAP.md`
-4. `.planning/REQUIREMENTS.md`
+4. `.planning/REQUIREMENTS.authoritative.md` (or REQUIREMENTS.md for legacy)
 5. `.planning/PROJECT.md`
 
 </required_reading>
@@ -19,15 +19,13 @@ Mark a shipped version (v1.0, v1.1, v2.0) as complete. Creates historical record
 When a milestone completes:
 
 1. Extract full milestone details to `.planning/milestones/v[X.Y]-ROADMAP.md`
-2. Archive requirements to `.planning/milestones/v[X.Y]-REQUIREMENTS.md`
+2. Archive requirements to `.planning/milestones/v[X.Y]-REQUIREMENTS.authoritative.md` and `.planning/milestones/v[X.Y]-REQUIREMENTS.derived.md` (or v[X.Y]-REQUIREMENTS.md for legacy)
 3. Update ROADMAP.md — replace milestone details with one-line summary
-4. Delete REQUIREMENTS.md (fresh one for next milestone)
+4. Delete REQUIREMENTS.authoritative.md and REQUIREMENTS.derived.md (fresh for next milestone)
 5. Perform full PROJECT.md evolution review
 6. Offer to create next milestone inline
 
-**Context Efficiency:** Archives keep ROADMAP.md constant-size and REQUIREMENTS.md milestone-scoped.
-
-**ROADMAP archive** uses `templates/milestone-archive.md` — includes milestone header (status, phases, date), full phase details, milestone summary (decisions, issues, tech debt).
+**Context Efficiency:** Archives keep ROADMAP.md constant-size and requirements milestone-scoped.
 
 **REQUIREMENTS archive** contains all requirements marked complete with outcomes, traceability table with final status, notes on changed requirements.
 
@@ -433,7 +431,8 @@ After `milestone complete` has archived, reorganize ROADMAP.md with milestone gr
 
 ```bash
 rm .planning/ROADMAP.md
-rm .planning/REQUIREMENTS.md
+# Delete requirements files (handles both legacy and new structure)
+rm -f .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md .planning/REQUIREMENTS.md
 ```
 
 </step>
@@ -615,10 +614,9 @@ git push origin v[X.Y]
 Commit milestone completion.
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "chore: complete v[X.Y] milestone" --files .planning/milestones/v[X.Y]-ROADMAP.md .planning/milestones/v[X.Y]-REQUIREMENTS.md .planning/milestones/v[X.Y]-MILESTONE-AUDIT.md .planning/MILESTONES.md .planning/PROJECT.md .planning/STATE.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "chore: complete v[X.Y] milestone" --files .planning/milestones/v[X.Y]-ROADMAP.md .planning/milestones/v[X.Y]-REQUIREMENTS.authoritative.md .planning/milestones/v[X.Y]-REQUIREMENTS.derived.md .planning/milestones/v[X.Y]-MILESTONE-AUDIT.md .planning/MILESTONES.md .planning/PROJECT.md .planning/STATE.md
 ```
 ```
-
 Confirm: "Committed: chore: complete v[X.Y] milestone"
 
 </step>
@@ -634,7 +632,8 @@ Shipped:
 
 Archived:
 - milestones/v[X.Y]-ROADMAP.md
-- milestones/v[X.Y]-REQUIREMENTS.md
+- milestones/v[X.Y]-REQUIREMENTS.authoritative.md
+- milestones/v[X.Y]-REQUIREMENTS.derived.md
 
 Summary: .planning/MILESTONES.md
 Tag: v[X.Y]
@@ -687,12 +686,12 @@ Milestone completion is successful when:
 - [ ] Key Decisions updated with outcomes
 - [ ] ROADMAP.md reorganized with milestone grouping
 - [ ] Roadmap archive created (milestones/v[X.Y]-ROADMAP.md)
-- [ ] Requirements archive created (milestones/v[X.Y]-REQUIREMENTS.md)
-- [ ] REQUIREMENTS.md deleted (fresh for next milestone)
+- [ ] Requirements archives created (milestones/v[X.Y]-REQUIREMENTS.authoritative.md and v[X.Y]-REQUIREMENTS.derived.md, or v[X.Y]-REQUIREMENTS.md for legacy)
+- [ ] Requirements files deleted (fresh for next milestone)
 - [ ] STATE.md updated with fresh project reference
 - [ ] Git tag created (v[X.Y])
 - [ ] Milestone commit made (includes archive files and deletion)
-- [ ] Requirements completion checked against REQUIREMENTS.md traceability table
+- [ ] Requirements completion checked against REQUIREMENTS.authoritative.md traceability table
 - [ ] Incomplete requirements surfaced with proceed/audit/abort options
 - [ ] Known gaps recorded in MILESTONES.md if user proceeded with incomplete requirements
 - [ ] User knows next step (/gsd:new-milestone)

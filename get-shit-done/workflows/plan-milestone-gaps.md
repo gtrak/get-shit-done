@@ -27,7 +27,7 @@ No audit gaps found. Run `/gsd:audit-milestone` first.
 
 ## 2. Prioritize Gaps
 
-Group gaps by priority from REQUIREMENTS.md:
+Group gaps by priority from REQUIREMENTS.authoritative.md (or REQUIREMENTS.md for legacy):
 
 | Priority | Action |
 |----------|--------|
@@ -123,7 +123,7 @@ Add new phases to current milestone:
 ...
 ```
 
-## 7. Update REQUIREMENTS.md Traceability Table (REQUIRED)
+## 7. Update Requirements Traceability Table (REQUIRED)
 
 For each REQ-ID assigned to a gap closure phase:
 - Update the Phase column to reflect the new gap closure phase
@@ -131,11 +131,11 @@ For each REQ-ID assigned to a gap closure phase:
 
 Reset checked-off requirements the audit found unsatisfied:
 - Change `[x]` → `[ ]` for any requirement marked unsatisfied in the audit
-- Update coverage count at top of REQUIREMENTS.md
+- Update coverage count at top of REQUIREMENTS.authoritative.md (or REQUIREMENTS.md for legacy)
 
 ```bash
 # Verify traceability table reflects gap closure assignments
-grep -c "Pending" .planning/REQUIREMENTS.md
+grep -c "Pending" .planning/REQUIREMENTS.authoritative.md 2>/dev/null || grep -c "Pending" .planning/REQUIREMENTS.md
 ```
 
 ## 8. Create Phase Directories
@@ -147,7 +147,7 @@ mkdir -p ".planning/phases/{NN}-{name}"
 ## 9. Commit Roadmap and Requirements Update
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning/ROADMAP.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning/ROADMAP.md .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md
 ```
 
 ## 10. Offer Next Steps
@@ -265,10 +265,10 @@ becomes:
 - [ ] Gaps grouped into logical phases
 - [ ] User confirmed phase plan
 - [ ] ROADMAP.md updated with new phases
-- [ ] REQUIREMENTS.md traceability table updated with gap closure phase assignments
+- [ ] REQUIREMENTS.authoritative.md traceability table updated with gap closure phase assignments
 - [ ] Unsatisfied requirement checkboxes reset (`[x]` → `[ ]`)
-- [ ] Coverage count updated in REQUIREMENTS.md
+- [ ] Coverage count updated in REQUIREMENTS.authoritative.md
 - [ ] Phase directories created
-- [ ] Changes committed (includes REQUIREMENTS.md)
+- [ ] Changes committed (includes REQUIREMENTS.authoritative.md and REQUIREMENTS.derived.md)
 - [ ] User knows to run `/gsd:plan-phase` next
 </success_criteria>

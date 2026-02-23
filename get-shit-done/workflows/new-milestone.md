@@ -218,11 +218,14 @@ Track: Selected → this milestone. Unselected table stakes → future. Unselect
 - "No, research covered it" — Proceed
 - "Yes, let me add some" — Capture additions
 
-**Generate REQUIREMENTS.md:**
+**Generate REQUIREMENTS.authoritative.md:**
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - Future Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
 - Traceability section (empty, filled by roadmap)
+
+**Initialize empty REQUIREMENTS.derived.md:**
+- Header only with "Implementation Requirements (None yet)"
 
 **REQ-ID format:** `[CATEGORY]-[NUMBER]` (AUTH-01, NOTIF-02). Continue numbering from existing.
 
@@ -251,9 +254,27 @@ Does this capture what you're building? (yes / adjust)
 
 If "adjust": Return to scoping.
 
+**Initialize empty derived requirements:**
+
+Create `.planning/REQUIREMENTS.derived.md` with header only:
+```markdown
+# Derived Requirements: [Project Name]
+
+**Generated:** [date]
+**Source:** REQUIREMENTS.authoritative.md
+
+## Implementation Requirements
+
+(None yet — generated during planning)
+
+---
+
+*Generated: [date]*
+```
+
 **Commit requirements:**
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md
 ```
 
 ## 10. Create Roadmap
@@ -273,7 +294,8 @@ Task(prompt="
 <planning_context>
 <files_to_read>
 - .planning/PROJECT.md
-- .planning/REQUIREMENTS.md
+- .planning/REQUIREMENTS.authoritative.md
+- .planning/REQUIREMENTS.derived.md
 - .planning/research/SUMMARY.md (if exists)
 - .planning/config.json
 - .planning/MILESTONES.md
@@ -287,8 +309,10 @@ Create roadmap for milestone v[X.Y]:
 3. Map every requirement to exactly one phase
 4. Derive 2-5 success criteria per phase (observable user behaviors)
 5. Validate 100% coverage
-6. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability)
-7. Return ROADMAP CREATED with summary
+6. Include provenance tags ([A] for authoritative-driven)
+7. Include justification (Forces, Fails if removed)
+8. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.authoritative.md traceability)
+9. Return ROADMAP CREATED with summary
 
 Write files first, then return.
 </instructions>
@@ -330,7 +354,7 @@ Success criteria:
 
 **Commit roadmap** (after approval):
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md
 ```
 
 ## 11. Done
@@ -338,16 +362,17 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create milestone v[
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► MILESTONE INITIALIZED ✓
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **Milestone v[X.Y]: [Name]**
 
-| Artifact       | Location                    |
-|----------------|-----------------------------|
-| Project        | `.planning/PROJECT.md`      |
-| Research       | `.planning/research/`       |
-| Requirements   | `.planning/REQUIREMENTS.md` |
-| Roadmap        | `.planning/ROADMAP.md`      |
+| Artifact       | Location                              |
+|----------------|---------------------------------------|
+| Project        | `.planning/PROJECT.md`                |
+| Research       | `.planning/research/`                 |
+| Authoritative  | `.planning/REQUIREMENTS.authoritative.md` |
+| Derived        | `.planning/REQUIREMENTS.derived.md`   |
+| Roadmap        | `.planning/ROADMAP.md`                |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 
@@ -370,7 +395,8 @@ Also: `/gsd:plan-phase [N]` — skip discussion, plan directly
 - [ ] MILESTONE-CONTEXT.md consumed and deleted (if existed)
 - [ ] Research completed (if selected) — 4 parallel agents, milestone-aware
 - [ ] Requirements gathered and scoped per category
-- [ ] REQUIREMENTS.md created with REQ-IDs
+- [ ] REQUIREMENTS.authoritative.md created with REQ-IDs
+- [ ] REQUIREMENTS.derived.md initialized
 - [ ] gsd-roadmapper spawned with phase numbering context
 - [ ] Roadmap files written immediately (not draft)
 - [ ] User feedback incorporated (if any)

@@ -395,7 +395,7 @@ Extract requirement IDs from the plan's frontmatter (e.g., `requirements: [AUTH-
 Task code already committed per-task. Commit plan metadata:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md .planning/ROADMAP.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md .planning/ROADMAP.md .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md
 ```
 </step>
 

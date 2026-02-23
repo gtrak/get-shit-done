@@ -31,7 +31,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs phases list
 - Parse version from arguments or detect current from ROADMAP.md
 - Identify all phase directories in scope
 - Extract milestone definition of done from ROADMAP.md
-- Extract requirements mapped to this milestone from REQUIREMENTS.md
+- Extract requirements mapped to this milestone from REQUIREMENTS.authoritative.md (or REQUIREMENTS.md for legacy)
 
 ## 2. Read All Phase Verifications
 
@@ -57,7 +57,7 @@ If a phase is missing VERIFICATION.md, flag it as "unverified phase" — this is
 
 With phase context collected:
 
-Extract `MILESTONE_REQ_IDS` from REQUIREMENTS.md traceability table — all REQ-IDs assigned to phases in this milestone.
+Extract `MILESTONE_REQ_IDS` from REQUIREMENTS.authoritative.md traceability table (or REQUIREMENTS.md for legacy) — all REQ-IDs assigned to phases in this milestone.
 
 ```
 Task(
@@ -286,7 +286,7 @@ All requirements met. No critical blockers. Accumulated tech debt needs review.
 - [ ] Milestone scope identified
 - [ ] All phase VERIFICATION.md files read
 - [ ] SUMMARY.md `requirements-completed` frontmatter extracted for each phase
-- [ ] REQUIREMENTS.md traceability table parsed for all milestone REQ-IDs
+- [ ] REQUIREMENTS.authoritative.md traceability table parsed for all milestone REQ-IDs (or REQUIREMENTS.md for legacy)
 - [ ] 3-source cross-reference completed (VERIFICATION + SUMMARY + traceability)
 - [ ] Orphaned requirements detected (in traceability but absent from all VERIFICATIONs)
 - [ ] Tech debt and deferred gaps aggregated

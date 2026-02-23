@@ -748,27 +748,52 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
 
     fs.writeFileSync(roadmapPath, roadmapContent, 'utf-8');
 
-    // Update REQUIREMENTS.md traceability for this phase's requirements
-    const reqPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
-    if (fs.existsSync(reqPath)) {
-      // Extract Requirements line from roadmap for this phase
-      const reqMatch = roadmapContent.match(
-        new RegExp(`Phase\\s+${phaseNum.replace('.', '\\.')}[\\s\\S]*?\\*\\*Requirements:\\*\\*\\s*([^\\n]+)`, 'i')
-      );
+    // Update REQUIREMENTS traceability for this phase's requirements
+    // Support both legacy REQUIREMENTS.md and new separated files
+    const reqAuthPath = path.join(cwd, '.planning', 'REQUIREMENTS.authoritative.md');
+    const reqDerivedPath = path.join(cwd, '.planning', 'REQUIREMENTS.derived.md');
+    const reqLegacyPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
 
-      if (reqMatch) {
-        const reqIds = reqMatch[1].replace(/[\[\]]/g, '').split(/[,\s]+/).map(r => r.trim()).filter(Boolean);
+    // Determine which files to update
+    const filesToUpdate = [];
+    if (fs.existsSync(reqAuthPath)) filesToUpdate.push(reqAuthPath);
+    if (fs.existsSync(reqDerivedPath)) filesToUpdate.push(reqDerivedPath);
+    if (!fs.existsSync(reqAuthPath) && !fs.existsSync(reqDerivedPath) && fs.existsSync(reqLegacyPath)) {
+      filesToUpdate.push(reqLegacyPath);
+    }
+
+    // Extract Requirements line from roadmap for this phase
+    const reqMatch = roadmapContent.match(
+      new RegExp(`Phase\\s+${phaseNum.replace('.', '\\.')}[\\s\\S]*?\\*\\*Requirements:\\*\\*\\s*([^\\n]+)`, 'i')
+    );
+
+    if (reqMatch && filesToUpdate.length > 0) {
+      const reqIds = reqMatch[1].replace(/[\[\]]/g, '').split(/[,\s]+/).map(r => r.trim()).filter(Boolean);
+
+      for (const reqPath of filesToUpdate) {
         let reqContent = fs.readFileSync(reqPath, 'utf-8');
+        const isDerived = reqPath.includes('REQUIREMENTS.derived');
 
         for (const reqId of reqIds) {
+          // For derived requirements, also check DER- prefix
+          const idToMatch = isDerived && !reqId.startsWith('DER-') ? `DER-${reqId}` : reqId;
+
           // Update checkbox: - [ ] **REQ-ID** → - [x] **REQ-ID**
           reqContent = reqContent.replace(
             new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${reqId}\\*\\*)`, 'gi'),
             '$1x$2'
           );
+          reqContent = reqContent.replace(
+            new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${idToMatch}\\*\\*)`, 'gi'),
+            '$1x$2'
+          );
           // Update traceability table: | REQ-ID | Phase N | Pending | → | REQ-ID | Phase N | Complete |
           reqContent = reqContent.replace(
             new RegExp(`(\\|\\s*${reqId}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
+            '$1 Complete $2'
+          );
+          reqContent = reqContent.replace(
+            new RegExp(`(\\|\\s*${idToMatch}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
             '$1 Complete $2'
           );
         }
