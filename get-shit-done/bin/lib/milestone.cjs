@@ -24,46 +24,98 @@ function cmdRequirementsMarkComplete(cwd, reqIdsRaw, raw) {
     error('no valid requirement IDs found');
   }
 
-  const reqPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
-  if (!fs.existsSync(reqPath)) {
-    output({ updated: false, reason: 'REQUIREMENTS.md not found', ids: reqIds }, raw, 'no requirements file');
+  // Support both legacy REQUIREMENTS.md and new separated files
+  const reqAuthPath = path.join(cwd, '.planning', 'REQUIREMENTS.authoritative.md');
+  const reqDerivedPath = path.join(cwd, '.planning', 'REQUIREMENTS.derived.md');
+  const reqLegacyPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
+
+  // Determine which files exist
+  const authExists = fs.existsSync(reqAuthPath);
+  const derivedExists = fs.existsSync(reqDerivedPath);
+  const legacyExists = fs.existsSync(reqLegacyPath);
+
+  let updated = [];
+  let notFound = [];
+
+  // Function to process a requirements file
+  function processRequirementsFile(reqPath, reqIds, isDerived) {
+    if (!fs.existsSync(reqPath)) return { updated: [], notFound: [] };
+
+    let reqContent = fs.readFileSync(reqPath, 'utf-8');
+    const fileUpdated = [];
+    const fileNotFound = [];
+
+    for (const reqId of reqIds) {
+      let found = false;
+
+      // For derived requirements, also check DER- prefix
+      if (isDerived) {
+        const derivedId = reqId.startsWith('DER-') ? reqId : `DER-${reqId}`;
+        // Update checkbox: - [ ] **DER-REQ-ID** → - [x] **DER-REQ-ID**
+        const checkboxPattern = new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${derivedId}\\*\\*)`, 'gi');
+        if (checkboxPattern.test(reqContent)) {
+          reqContent = reqContent.replace(checkboxPattern, '$1x$2');
+          found = true;
+        }
+      } else {
+        // Update checkbox: - [ ] **REQ-ID** → - [x] **REQ-ID**
+        const checkboxPattern = new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${reqId}\\*\\*)`, 'gi');
+        if (checkboxPattern.test(reqContent)) {
+          reqContent = reqContent.replace(checkboxPattern, '$1x$2');
+          found = true;
+        }
+      }
+
+      // Update traceability table: | REQ-ID | Phase N | Pending | → | REQ-ID | Phase N | Complete |
+      const tablePattern = new RegExp(`(\\|\\s*${reqId}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi');
+      if (tablePattern.test(reqContent)) {
+        // Re-read since test() advances lastIndex for global regex
+        reqContent = reqContent.replace(
+          new RegExp(`(\\|\\s*${reqId}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
+          '$1 Complete $2'
+        );
+        found = true;
+      }
+
+      if (found) {
+        fileUpdated.push(reqId);
+      } else {
+        fileNotFound.push(reqId);
+      }
+    }
+
+    if (fileUpdated.length > 0) {
+      fs.writeFileSync(reqPath, reqContent, 'utf-8');
+    }
+
+    return { updated: fileUpdated, notFound: fileNotFound };
+  }
+
+  // Process authoritative requirements
+  if (authExists) {
+    const authResult = processRequirementsFile(reqAuthPath, reqIds, false);
+    updated = updated.concat(authResult.updated);
+    notFound = notFound.concat(authResult.notFound);
+  }
+
+  // Process derived requirements
+  if (derivedExists) {
+    const derivedResult = processRequirementsFile(reqDerivedPath, reqIds, true);
+    updated = updated.concat(derivedResult.updated);
+    notFound = notFound.concat(derivedResult.notFound);
+  }
+
+  // Fallback to legacy file if neither new file exists
+  if (!authExists && !derivedExists && legacyExists) {
+    const legacyResult = processRequirementsFile(reqLegacyPath, reqIds, false);
+    updated = updated.concat(legacyResult.updated);
+    notFound = notFound.concat(legacyResult.notFound);
+  }
+
+  // If no files exist at all
+  if (!authExists && !derivedExists && !legacyExists) {
+    output({ updated: false, reason: 'No requirements file found (checked REQUIREMENTS.authoritative.md, REQUIREMENTS.derived.md, REQUIREMENTS.md)', ids: reqIds }, raw, 'no requirements file');
     return;
-  }
-
-  let reqContent = fs.readFileSync(reqPath, 'utf-8');
-  const updated = [];
-  const notFound = [];
-
-  for (const reqId of reqIds) {
-    let found = false;
-
-    // Update checkbox: - [ ] **REQ-ID** → - [x] **REQ-ID**
-    const checkboxPattern = new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${reqId}\\*\\*)`, 'gi');
-    if (checkboxPattern.test(reqContent)) {
-      reqContent = reqContent.replace(checkboxPattern, '$1x$2');
-      found = true;
-    }
-
-    // Update traceability table: | REQ-ID | Phase N | Pending | → | REQ-ID | Phase N | Complete |
-    const tablePattern = new RegExp(`(\\|\\s*${reqId}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi');
-    if (tablePattern.test(reqContent)) {
-      // Re-read since test() advances lastIndex for global regex
-      reqContent = reqContent.replace(
-        new RegExp(`(\\|\\s*${reqId}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
-        '$1 Complete $2'
-      );
-      found = true;
-    }
-
-    if (found) {
-      updated.push(reqId);
-    } else {
-      notFound.push(reqId);
-    }
-  }
-
-  if (updated.length > 0) {
-    fs.writeFileSync(reqPath, reqContent, 'utf-8');
   }
 
   output({
@@ -80,7 +132,10 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
   }
 
   const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
-  const reqPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
+  // Support both legacy and new requirement files
+  const reqAuthPath = path.join(cwd, '.planning', 'REQUIREMENTS.authoritative.md');
+  const reqDerivedPath = path.join(cwd, '.planning', 'REQUIREMENTS.derived.md');
+  const reqLegacyPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
   const statePath = path.join(cwd, '.planning', 'STATE.md');
   const milestonesPath = path.join(cwd, '.planning', 'MILESTONES.md');
   const archiveDir = path.join(cwd, '.planning', 'milestones');
@@ -130,9 +185,23 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
     fs.writeFileSync(path.join(archiveDir, `${version}-ROADMAP.md`), roadmapContent, 'utf-8');
   }
 
-  // Archive REQUIREMENTS.md
-  if (fs.existsSync(reqPath)) {
-    const reqContent = fs.readFileSync(reqPath, 'utf-8');
+  // Archive REQUIREMENTS.authoritative.md
+  if (fs.existsSync(reqAuthPath)) {
+    const reqContent = fs.readFileSync(reqAuthPath, 'utf-8');
+    const archiveHeader = `# Authoritative Requirements Archive: ${version} ${milestoneName}\n\n**Archived:** ${today}\n**Status:** SHIPPED\n\nFor current requirements, see \`.planning/REQUIREMENTS.authoritative.md\`.\n\n---\n\n`;
+    fs.writeFileSync(path.join(archiveDir, `${version}-REQUIREMENTS.authoritative.md`), archiveHeader + reqContent, 'utf-8');
+  }
+
+  // Archive REQUIREMENTS.derived.md
+  if (fs.existsSync(reqDerivedPath)) {
+    const reqContent = fs.readFileSync(reqDerivedPath, 'utf-8');
+    const archiveHeader = `# Derived Requirements Archive: ${version} ${milestoneName}\n\n**Archived:** ${today}\n**Status:** SHIPPED\n\nFor current requirements, see \`.planning/REQUIREMENTS.derived.md\`.\n\n---\n\n`;
+    fs.writeFileSync(path.join(archiveDir, `${version}-REQUIREMENTS.derived.md`), archiveHeader + reqContent, 'utf-8');
+  }
+
+  // Legacy: Archive REQUIREMENTS.md if it exists and new files don't
+  if (!fs.existsSync(reqAuthPath) && !fs.existsSync(reqDerivedPath) && fs.existsSync(reqLegacyPath)) {
+    const reqContent = fs.readFileSync(reqLegacyPath, 'utf-8');
     const archiveHeader = `# Requirements Archive: ${version} ${milestoneName}\n\n**Archived:** ${today}\n**Status:** SHIPPED\n\nFor current requirements, see \`.planning/REQUIREMENTS.md\`.\n\n---\n\n`;
     fs.writeFileSync(path.join(archiveDir, `${version}-REQUIREMENTS.md`), archiveHeader + reqContent, 'utf-8');
   }
@@ -198,7 +267,9 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
     accomplishments,
     archived: {
       roadmap: fs.existsSync(path.join(archiveDir, `${version}-ROADMAP.md`)),
-      requirements: fs.existsSync(path.join(archiveDir, `${version}-REQUIREMENTS.md`)),
+      requirements_authoritative: fs.existsSync(path.join(archiveDir, `${version}-REQUIREMENTS.authoritative.md`)),
+      requirements_derived: fs.existsSync(path.join(archiveDir, `${version}-REQUIREMENTS.derived.md`)),
+      requirements_legacy: fs.existsSync(path.join(archiveDir, `${version}-REQUIREMENTS.md`)),
       audit: fs.existsSync(path.join(archiveDir, `${version}-MILESTONE-AUDIT.md`)),
       phases: phasesArchived,
     },

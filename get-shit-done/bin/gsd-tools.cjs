@@ -542,8 +542,14 @@ async function main() {
         case 'progress':
           init.cmdInitProgress(cwd, raw);
           break;
+        case 'reconciliation':
+          init.cmdInitReconciliation(cwd, raw);
+          break;
+        case 'reproject-roadmap':
+          init.cmdInitReprojectRoadmap(cwd, raw);
+          break;
         default:
-          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress`);
+          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress, reconciliation, reproject-roadmap`);
       }
       break;
     }

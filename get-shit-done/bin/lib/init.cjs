@@ -75,6 +75,13 @@ function cmdInitExecutePhase(cwd, phase, raw) {
     state_path: '.planning/STATE.md',
     roadmap_path: '.planning/ROADMAP.md',
     config_path: '.planning/config.json',
+    requirements_path: pathExistsInternal(cwd, '.planning/REQUIREMENTS.authoritative.md') 
+      ? '.planning/REQUIREMENTS.authoritative.md' 
+      : pathExistsInternal(cwd, '.planning/REQUIREMENTS.md')
+        ? '.planning/REQUIREMENTS.md'
+        : '.planning/REQUIREMENTS.authoritative.md',
+    requirements_authoritative_path: '.planning/REQUIREMENTS.authoritative.md',
+    requirements_derived_path: '.planning/REQUIREMENTS.derived.md',
   };
 
   output(result, raw);
@@ -126,10 +133,16 @@ function cmdInitPlanPhase(cwd, phase, raw) {
     planning_exists: pathExistsInternal(cwd, '.planning'),
     roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
 
-    // File paths
+    // File paths (backward compatible: use new files if they exist, fallback to legacy)
     state_path: '.planning/STATE.md',
     roadmap_path: '.planning/ROADMAP.md',
-    requirements_path: '.planning/REQUIREMENTS.md',
+    requirements_path: pathExistsInternal(cwd, '.planning/REQUIREMENTS.authoritative.md') 
+      ? '.planning/REQUIREMENTS.authoritative.md' 
+      : pathExistsInternal(cwd, '.planning/REQUIREMENTS.md')
+        ? '.planning/REQUIREMENTS.md'
+        : '.planning/REQUIREMENTS.authoritative.md',
+    requirements_authoritative_path: '.planning/REQUIREMENTS.authoritative.md',
+    requirements_derived_path: '.planning/REQUIREMENTS.derived.md',
   };
 
   if (phaseInfo?.directory) {
@@ -213,6 +226,9 @@ function cmdInitNewProject(cwd, raw) {
 
     // File paths
     project_path: '.planning/PROJECT.md',
+    // NEW: Separate requirement files
+    requirements_authoritative_path: '.planning/REQUIREMENTS.authoritative.md',
+    requirements_derived_path: '.planning/REQUIREMENTS.derived.md',
   };
 
   output(result, raw);
@@ -410,10 +426,16 @@ function cmdInitPhaseOp(cwd, phase, raw) {
     roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
     planning_exists: pathExistsInternal(cwd, '.planning'),
 
-    // File paths
+    // File paths (backward compatible: use new files if they exist, fallback to legacy)
     state_path: '.planning/STATE.md',
     roadmap_path: '.planning/ROADMAP.md',
-    requirements_path: '.planning/REQUIREMENTS.md',
+    requirements_path: pathExistsInternal(cwd, '.planning/REQUIREMENTS.authoritative.md') 
+      ? '.planning/REQUIREMENTS.authoritative.md' 
+      : pathExistsInternal(cwd, '.planning/REQUIREMENTS.md')
+        ? '.planning/REQUIREMENTS.md'
+        : '.planning/REQUIREMENTS.authoritative.md',
+    requirements_authoritative_path: '.planning/REQUIREMENTS.authoritative.md',
+    requirements_derived_path: '.planning/REQUIREMENTS.derived.md',
   };
 
   if (phaseInfo?.directory) {
@@ -694,6 +716,73 @@ function cmdInitProgress(cwd, raw) {
   output(result, raw);
 }
 
+function cmdInitReconciliation(cwd, raw) {
+  const config = loadConfig(cwd);
+
+  // Count completed phases
+  const phasesDir = path.join(cwd, '.planning', 'phases');
+  let completedPhases = 0;
+  try {
+    const entries = fs.readdirSync(phasesDir, { withFileTypes: true });
+    const dirs = entries.filter(e => e.isDirectory()).map(e => e.name);
+    for (const dir of dirs) {
+      try {
+        const phaseFiles = fs.readdirSync(path.join(phasesDir, dir));
+        const hasSummary = phaseFiles.some(f => f.endsWith('-SUMMARY.md') || f === 'SUMMARY.md');
+        if (hasSummary) completedPhases++;
+      } catch {}
+    }
+  } catch {}
+
+  const result = {
+    // Config
+    commit_docs: config.commit_docs,
+
+    // File existence
+    planning_exists: pathExistsInternal(cwd, '.planning'),
+    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
+    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
+    requirements_authoritative_exists: pathExistsInternal(cwd, '.planning/REQUIREMENTS.authoritative.md'),
+    requirements_derived_exists: pathExistsInternal(cwd, '.planning/REQUIREMENTS.derived.md'),
+
+    // File paths
+    roadmap_path: '.planning/ROADMAP.md',
+    state_path: '.planning/STATE.md',
+    requirements_authoritative_path: '.planning/REQUIREMENTS.authoritative.md',
+    requirements_derived_path: '.planning/REQUIREMENTS.derived.md',
+
+    // Phase stats
+    completed_phases: completedPhases,
+    can_reconcile: completedPhases > 0,
+  };
+
+  output(result, raw);
+}
+
+function cmdInitReprojectRoadmap(cwd, raw) {
+  const config = loadConfig(cwd);
+
+  const result = {
+    // Config
+    commit_docs: config.commit_docs,
+
+    // File existence
+    planning_exists: pathExistsInternal(cwd, '.planning'),
+    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
+    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
+    requirements_authoritative_exists: pathExistsInternal(cwd, '.planning/REQUIREMENTS.authoritative.md'),
+    requirements_derived_exists: pathExistsInternal(cwd, '.planning/REQUIREMENTS.derived.md'),
+
+    // File paths
+    roadmap_path: '.planning/ROADMAP.md',
+    state_path: '.planning/STATE.md',
+    requirements_authoritative_path: '.planning/REQUIREMENTS.authoritative.md',
+    requirements_derived_path: '.planning/REQUIREMENTS.derived.md',
+  };
+
+  output(result, raw);
+}
+
 module.exports = {
   cmdInitExecutePhase,
   cmdInitPlanPhase,
@@ -707,4 +796,6 @@ module.exports = {
   cmdInitMilestoneOp,
   cmdInitMapCodebase,
   cmdInitProgress,
+  cmdInitReconciliation,
+  cmdInitReprojectRoadmap,
 };

@@ -47,7 +47,7 @@ describe('init commands', () => {
     const output = JSON.parse(result.output);
     assert.strictEqual(output.state_path, '.planning/STATE.md');
     assert.strictEqual(output.roadmap_path, '.planning/ROADMAP.md');
-    assert.strictEqual(output.requirements_path, '.planning/REQUIREMENTS.md');
+    assert.strictEqual(output.requirements_path, '.planning/REQUIREMENTS.authoritative.md');
     assert.strictEqual(output.context_path, '.planning/phases/03-api/03-CONTEXT.md');
     assert.strictEqual(output.research_path, '.planning/phases/03-api/03-RESEARCH.md');
     assert.strictEqual(output.verification_path, '.planning/phases/03-api/03-VERIFICATION.md');
@@ -79,7 +79,7 @@ describe('init commands', () => {
     const output = JSON.parse(result.output);
     assert.strictEqual(output.state_path, '.planning/STATE.md');
     assert.strictEqual(output.roadmap_path, '.planning/ROADMAP.md');
-    assert.strictEqual(output.requirements_path, '.planning/REQUIREMENTS.md');
+    assert.strictEqual(output.requirements_path, '.planning/REQUIREMENTS.authoritative.md');
     assert.strictEqual(output.context_path, '.planning/phases/03-api/03-CONTEXT.md');
     assert.strictEqual(output.research_path, '.planning/phases/03-api/03-RESEARCH.md');
     assert.strictEqual(output.verification_path, '.planning/phases/03-api/03-VERIFICATION.md');

@@ -45,6 +45,69 @@ PHASE_INFO=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs roadmap get-phase "$
 
 **If `found` is false:** Error with available phases. **If `found` is true:** Extract `phase_number`, `phase_name`, `goal` from JSON.
 
+## 3.5. Phase Closure Enforcement
+
+**Skip if:** `--force` flag is present.
+
+**Check if current phase (previous phase) has unverified tasks:**
+
+1. Determine previous phase number:
+   - If planning Phase N, check Phase N-1
+   - If Phase 1, skip (no previous phase)
+
+2. Check for unverified tasks in previous phase:
+   ```bash
+   PREV_PHASE=$((PHASE - 1))
+   PREV_DIR=$(ls -d .planning/phases/*-${PREV_PHASE} 2>/dev/null)
+   
+   if [ -d "$PREV_DIR" ]; then
+     # Check for incomplete verifications
+     ls "$PREV_DIR"/*-VERIFICATION.md 2>/dev/null | while read f; do
+       grep -q "VERIFICATION FAILED\|GAPS FOUND" "$f" && echo "BLOCKED"
+     done
+   fi
+   ```
+
+3. Check for unresolved superseded status:
+   - Read ROADMAP.md for any phases with `Supersedes` field that references current phase
+   - If found and not resolved, block
+
+**If checks fail:**
+
+Display:
+```
+⚠️ PHASE CLOSURE BLOCK
+
+Cannot start Phase {N} because:
+- Previous phase has unverified tasks
+- OR Milestone has unresolved superseded status
+
+Options:
+1. Run /gsd:execute-phase {PREV} — complete previous phase
+2. Run /gsd:plan-reconciliation — audit current state
+3. /gsd:plan-phase {N} --force — override (not recommended)
+```
+
+Ask user:
+```
+AskUserQuestion([
+  {
+    header: "Phase Blocked",
+    question: "Previous phase has unverified tasks. How to proceed?",
+    multiSelect: false,
+    options: [
+      { label: "Complete previous phase", description: "Run /gsd:execute-phase {PREV}" },
+      { label: "Run reconciliation", description: "Audit current state first" },
+      { label: "Force proceed", description: "Override (may cause issues)" }
+    ]
+  }
+])
+```
+
+**If "Force proceed" selected:** Continue with warning displayed.
+
+**If no issues found:** Continue to step 4.
+
 ## 4. Load CONTEXT.md
 
 Check `context_path` from init JSON.

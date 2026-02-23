@@ -24,9 +24,14 @@ describe('milestone complete command', () => {
       path.join(tmpDir, '.planning', 'ROADMAP.md'),
       `# Roadmap v1.0 MVP\n\n### Phase 1: Foundation\n**Goal:** Setup\n`
     );
+    // Create new-style requirement files
     fs.writeFileSync(
-      path.join(tmpDir, '.planning', 'REQUIREMENTS.md'),
-      `# Requirements\n\n- [ ] User auth\n- [ ] Dashboard\n`
+      path.join(tmpDir, '.planning', 'REQUIREMENTS.authoritative.md'),
+      `# Authoritative Requirements\n\n- [ ] User auth\n- [ ] Dashboard\n`
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'REQUIREMENTS.derived.md'),
+      `# Derived Requirements\n\n(None yet)\n`
     );
     fs.writeFileSync(
       path.join(tmpDir, '.planning', 'STATE.md'),
@@ -47,7 +52,8 @@ describe('milestone complete command', () => {
     assert.strictEqual(output.version, 'v1.0');
     assert.strictEqual(output.phases, 1);
     assert.ok(output.archived.roadmap, 'roadmap should be archived');
-    assert.ok(output.archived.requirements, 'requirements should be archived');
+    assert.ok(output.archived.requirements_authoritative, 'authoritative requirements should be archived');
+    assert.ok(output.archived.requirements_derived, 'derived requirements should be archived');
 
     // Verify archive files exist
     assert.ok(
@@ -55,8 +61,12 @@ describe('milestone complete command', () => {
       'archived roadmap should exist'
     );
     assert.ok(
-      fs.existsSync(path.join(tmpDir, '.planning', 'milestones', 'v1.0-REQUIREMENTS.md')),
-      'archived requirements should exist'
+      fs.existsSync(path.join(tmpDir, '.planning', 'milestones', 'v1.0-REQUIREMENTS.authoritative.md')),
+      'archived authoritative requirements should exist'
+    );
+    assert.ok(
+      fs.existsSync(path.join(tmpDir, '.planning', 'milestones', 'v1.0-REQUIREMENTS.derived.md')),
+      'archived derived requirements should exist'
     );
 
     // Verify MILESTONES.md created

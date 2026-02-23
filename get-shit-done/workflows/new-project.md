@@ -837,9 +837,9 @@ Use AskUserQuestion:
 
 Cross-check requirements against Core Value from PROJECT.md. If gaps detected, surface them.
 
-**Generate REQUIREMENTS.md:**
+**Generate REQUIREMENTS.authoritative.md:**
 
-Create `.planning/REQUIREMENTS.md` with:
+Create `.planning/REQUIREMENTS.authoritative.md` with:
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - v2 Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
@@ -884,10 +884,36 @@ Does this capture what you're building? (yes / adjust)
 
 If "adjust": Return to scoping.
 
+**Initialize empty derived requirements:**
+
+Create `.planning/REQUIREMENTS.derived.md` with header only:
+
+```markdown
+# Derived Requirements: [Project Name]
+
+**Generated:** [date]
+**Source:** REQUIREMENTS.authoritative.md
+
+## Implementation Requirements
+
+(None yet — generated during planning)
+
+## Traceability
+
+| Derived ID | Source | Status |
+|------------|--------|--------|
+
+---
+
+*Generated: [date]*
+*This file is auto-generated from authoritative requirements*
+*Planning commands may update this file*
+```
+
 **Commit requirements:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md
 ```
 
 ## 8. Create Roadmap
@@ -909,7 +935,8 @@ Task(prompt="
 
 <files_to_read>
 - .planning/PROJECT.md (Project context)
-- .planning/REQUIREMENTS.md (v1 Requirements)
+- .planning/REQUIREMENTS.authoritative.md (Human-defined requirements - source of truth)
+- .planning/REQUIREMENTS.derived.md (Planning-generated requirements)
 - .planning/research/SUMMARY.md (Research findings - if exists)
 - .planning/config.json (Depth and mode settings)
 </files_to_read>
@@ -1017,7 +1044,7 @@ Use AskUserQuestion:
 **Commit roadmap (after approval or auto mode):**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.authoritative.md .planning/REQUIREMENTS.derived.md
 ```
 
 ## 9. Done
@@ -1027,17 +1054,18 @@ Present completion summary:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► PROJECT INITIALIZED ✓
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━
 
-**[Project Name]**
+**[Project ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ Name]**
 
-| Artifact       | Location                    |
-|----------------|-----------------------------|
-| Project        | `.planning/PROJECT.md`      |
-| Config         | `.planning/config.json`     |
-| Research       | `.planning/research/`       |
-| Requirements   | `.planning/REQUIREMENTS.md` |
-| Roadmap        | `.planning/ROADMAP.md`      |
+| Artifact       | Location                              |
+|----------------|---------------------------------------|
+| Project        | `.planning/PROJECT.md`                |
+| Config         | `.planning/config.json`               |
+| Research       | `.planning/research/`                 |
+| Authoritative  | `.planning/REQUIREMENTS.authoritative.md` |
+| Derived        | `.planning/REQUIREMENTS.derived.md`   |
+| Roadmap        | `.planning/ROADMAP.md`                |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 ```
@@ -1085,7 +1113,8 @@ Exit skill and invoke SlashCommand("/gsd:discuss-phase 1 --auto")
   - `ARCHITECTURE.md`
   - `PITFALLS.md`
   - `SUMMARY.md`
-- `.planning/REQUIREMENTS.md`
+- `.planning/REQUIREMENTS.authoritative.md`
+- `.planning/REQUIREMENTS.derived.md`
 - `.planning/ROADMAP.md`
 - `.planning/STATE.md`
 
@@ -1102,13 +1131,14 @@ Exit skill and invoke SlashCommand("/gsd:discuss-phase 1 --auto")
 - [ ] Research completed (if selected) — 4 parallel agents spawned → **committed**
 - [ ] Requirements gathered (from research or conversation)
 - [ ] User scoped each category (v1/v2/out of scope)
-- [ ] REQUIREMENTS.md created with REQ-IDs → **committed**
+- [ ] REQUIREMENTS.authoritative.md created with REQ-IDs → **committed**
+- [ ] REQUIREMENTS.derived.md initialized → **committed**
 - [ ] gsd-roadmapper spawned with context
 - [ ] Roadmap files written immediately (not draft)
 - [ ] User feedback incorporated (if any)
 - [ ] ROADMAP.md created with phases, requirement mappings, success criteria
 - [ ] STATE.md initialized
-- [ ] REQUIREMENTS.md traceability updated
+- [ ] REQUIREMENTS.authoritative.md traceability updated
 - [ ] User knows next step is `/gsd:discuss-phase 1`
 
 **Atomic commits:** Each phase commits its artifacts immediately. If context is lost, artifacts persist.

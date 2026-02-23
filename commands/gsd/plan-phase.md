@@ -1,7 +1,7 @@
 ---
 name: gsd:plan-phase
 description: Create detailed phase plan (PLAN.md) with verification loop
-argument-hint: "[phase] [--auto] [--research] [--skip-research] [--gaps] [--skip-verify]"
+argument-hint: "[phase] [--auto] [--research] [--skip-research] [--gaps] [--skip-verify] [--force]"
 agent: gsd-planner
 allowed-tools:
   - Read
@@ -17,6 +17,13 @@ allowed-tools:
 Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification.
 
 **Default flow:** Research (if needed) → Plan → Verify → Done
+
+**Phase Closure Enforcement:**
+This command refuses to create a new phase if:
+- Current phase has unverified tasks
+- Milestone has unresolved superseded status
+
+Use `--force` to override these checks.
 
 **Orchestrator role:** Parse arguments, validate phase, research domain (unless skipped), spawn gsd-planner, verify with gsd-plan-checker, iterate until pass or max iterations, present results.
 </objective>
@@ -34,6 +41,7 @@ Phase number: $ARGUMENTS (optional — auto-detects next unplanned phase if omit
 - `--skip-research` — Skip research, go straight to planning
 - `--gaps` — Gap closure mode (reads VERIFICATION.md, skips research)
 - `--skip-verify` — Skip verification loop
+- `--force` — Override closure enforcement checks
 
 Normalize phase input in step 2 before any directory lookups.
 </context>

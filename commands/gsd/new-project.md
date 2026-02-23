@@ -21,7 +21,8 @@ Initialize a new project through unified flow: questioning → research (optiona
 - `.planning/PROJECT.md` — project context
 - `.planning/config.json` — workflow preferences
 - `.planning/research/` — domain research (optional)
-- `.planning/REQUIREMENTS.md` — scoped requirements
+- `.planning/REQUIREMENTS.authoritative.md` — human-defined requirements (source of truth)
+- `.planning/REQUIREMENTS.derived.md` — planning-generated requirements
 - `.planning/ROADMAP.md` — phase structure
 - `.planning/STATE.md` — project memory
 
@@ -33,7 +34,8 @@ Initialize a new project through unified flow: questioning → research (optiona
 @~/.claude/get-shit-done/references/questioning.md
 @~/.claude/get-shit-done/references/ui-brand.md
 @~/.claude/get-shit-done/templates/project.md
-@~/.claude/get-shit-done/templates/requirements.md
+@~/.claude/get-shit-done/templates/requirements-authoritative.md
+@~/.claude/get-shit-done/templates/requirements-derived.md
 </execution_context>
 
 <process>
