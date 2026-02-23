@@ -90,18 +90,13 @@ Options:
 
 Ask user:
 ```
-AskUserQuestion([
-  {
-    header: "Phase Blocked",
-    question: "Previous phase has unverified tasks. How to proceed?",
-    multiSelect: false,
-    options: [
-      { label: "Complete previous phase", description: "Run /gsd:execute-phase {PREV}" },
-      { label: "Run reconciliation", description: "Audit current state first" },
-      { label: "Force proceed", description: "Override (may cause issues)" }
-    ]
-  }
-])
+Use AskUserQuestion:
+- header: "Phase Blocked"
+- question: "Previous phase has unverified tasks. How to proceed?"
+- options:
+  - "Complete previous phase" — Run /gsd:execute-phase {PREV}
+  - "Run reconciliation" — Audit current state first
+  - "Force proceed" — Override (may cause issues)
 ```
 
 **If "Force proceed" selected:** Continue with warning displayed.
