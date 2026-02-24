@@ -148,6 +148,9 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    If ANY spot-check fails: report which plan failed, route to failure handler — ask "Retry plan?" or "Continue with remaining waves?"
 
    If pass:
+
+   **Run code review → see `<code_review_cycle>` section below.**
+
    ```
    ---
    ## Wave {N} Complete
@@ -446,4 +449,143 @@ Orchestrator: ~10-15% context. Subagents: fresh 200k each. No polling (Task bloc
 Re-run `/gsd:execute-phase {phase}` → discover_plans finds completed SUMMARYs → skips them → resumes from first incomplete plan → continues wave execution.
 
 STATE.md tracks: last completed plan, current wave, pending checkpoints.
+
+
+<code_review_cycle>
+## Code Review Cycle (max 5 cycles)
+
+Run antagonistic code review after each plan completes to find issues, rank by severity, and iterate until fixed.
+
+**Step 1: Prepare review context**
+
+The plan just completed and created SUMMARY.md. Find the most recently modified SUMMARY:
+
+```bash
+# Find the phase directory (most recently modified)
+PHASE_DIR=$(ls -td .planning/phases/*/ 2>/dev/null | head -1)
+
+# Get the most recent SUMMARY file (the plan that just completed)
+SUMMARY_FILE=$(ls -t "$PHASE_DIR"*-SUMMARY.md 2>/dev/null | head -1)
+
+if [ -z "$SUMMARY_FILE" ]; then
+  echo "ERROR: No SUMMARY file found"
+  exit 1
+fi
+
+# Extract plan base name (remove -SUMMARY.md)
+PLAN_BASE=$(basename "$SUMMARY_FILE" -SUMMARY.md)
+PHASE_NUM=$(echo "$PLAN_BASE" | cut -d'-' -f1)
+PLAN_SLUG=$(echo "$PLAN_BASE" | cut -d'-' -f2-)
+PLAN_NAME="$PLAN_SLUG"
+
+PLAN_FILE="$PHASE_DIR${PLAN_BASE}-PLAN.md"
+REVIEW_FILE="$PHASE_DIR${PLAN_BASE}-CODE-REVIEW.md"
+
+# Get git diff for this plan
+PLAN_COMMITS=$(git log --oneline --all --grep="${PHASE_NUM}-${PLAN_SLUG}" 2>/dev/null | head -20)
+if [ -n "$PLAN_COMMITS" ]; then
+  FIRST_COMMIT=$(git log --oneline --all --grep="${PHASE_NUM}-${PLAN_SLUG}" --reverse 2>/dev/null | head -1 | cut -d' ' -f1)
+  LAST_COMMIT=$(git log --oneline --all --grep="${PHASE_NUM}-${PLAN_SLUG}" 2>/dev/null | head -1 | cut -d' ' -f1)
+  GIT_DIFF=$(git diff ${FIRST_COMMIT}^..${LAST_COMMIT} 2>/dev/null)
+else
+  GIT_DIFF=$(git diff HEAD~50..HEAD 2>/dev/null)
+fi
+
+echo "=== Code Review: Phase $PHASE_NUM, Plan: $PLAN_NAME ==="
+```
+
+**Step 2: Check for previous review (cycles 2-5)**
+
+```bash
+PREVIOUS_REVIEW=""
+if [ -f "$REVIEW_FILE" ] && [ "$CYCLE" -gt 1 ]; then
+  PREVIOUS_REVIEW=$(cat "$REVIEW_FILE")
+fi
+```
+
+**Step 3: Spawn gsd-code-reviewer agent**
+
+```
+Task(prompt="
+<files_to_read>
+- ${PLAN_FILE}
+- ${SUMMARY_FILE}
+- ${PREVIOUS_REVIEW:+${REVIEW_FILE}}
+</files_to_read>
+
+<git_diff>
+${GIT_DIFF}
+</git_diff>
+
+<instructions>
+Review implemented code for phase ${PHASE_NUM}, plan '${PLAN_NAME}'.
+
+Review cycle: ${CYCLE}/5
+
+1. If cycle > 1: check each issue from previous CODE-REVIEW.md → FIXED or STILL_OPEN
+2. Find NEW issues:
+   - Plan drift (tasks not completed)
+   - Partial implementation (TODOs, stubs, FIXME)
+   - Incomplete stubs
+   - Useless tests, duplicate tests
+   - Bugs, security, performance
+   - Best practice violations
+3. Rank by severity: Critical > Major > Minor
+4. Write to ${REVIEW_FILE}
+", subagent_type="gsd-code-reviewer", model="{verifier_model}", description="Code review ${CYCLE}")
+```
+
+**Step 4: Read and check review result**
+
+If "Status: ISSUES_RESOLVED":
+- All issues fixed → continue execution
+- Commit: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(${PHASE_NUM}-${PLAN_SLUG}): code review passed" --files "${REVIEW_FILE}"`
+
+If issues remain:
+- Extract issues → spawn fix agent
+
+**Step 5: Spawn fix agent (if issues remain)**
+
+```
+Task(prompt="
+<files_to_read>
+- ${REVIEW_FILE}
+- ${PLAN_FILE}
+</files_to_read>
+
+<instructions>
+Fix code review issues:
+
+### Critical (must fix)
+{List critical issues with file:line}
+
+### Major (should fix)
+{List major issues with file:line}
+
+### Minor (nice to fix)
+{List minor issues}
+
+1. Fix each issue
+2. Run verification
+3. Commit: 'fix(${PHASE_NUM}-${PLAN_SLUG}): address code review issues'
+", subagent_type="gsd-executor", model="{executor_model}", description="Fix code review issues")
+```
+
+**Step 6: After fix agent completes**
+- Commit fixes
+- Continue to next cycle
+
+**After 5 cycles with issues:**
+
+Present to user:
+```
+Code review: N issues remain after 5 cycles.
+
+Options:
+1. Continue anyway
+2. Abort
+3. One more cycle
+```
+</code_review_cycle>
+
 </resumption>
