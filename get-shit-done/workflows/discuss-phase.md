@@ -435,6 +435,37 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(state): record phase
 ```
 </step>
 
+<step name="capture_new_authoritative_requirements">
+**Check for new authoritative requirements:**
+
+During discussion, did the user explicitly state any NEW requirements (not just implementation details)?
+
+Ask: "Did any new requirements come up that should be added to REQUIREMENTS.authoritative?"
+
+- **If YES:** These are AUTHORITATIVE requirements (from the user):
+
+  **Update REQUIREMENTS.authoritative.md:**
+  1. Read current REQUIREMENTS.authoritative.md
+  2. Add new requirements with proper REQ-IDs (continue numbering)
+  3. Update traceability section to map to current phase
+  4. Commit: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: add authoritative requirements from phase ${PHASE} discussion" --files .planning/REQUIREMENTS.authoritative.md`
+
+  **Also update PROJECT.md Active section:**
+  1. Read current PROJECT.md
+  2. Add new requirements to "Requirements — Active" section
+  3. Commit: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: add requirements to Active from phase ${PHASE}" --files .planning/PROJECT.md`
+
+  **Note:** Requirements must be tracked in BOTH places:
+  - REQUIREMENTS.authoritative.md → milestone-scoped, mapped to phases
+  - PROJECT.md Active → project-scoped, persists across milestones
+
+- **If NO:** Continue
+
+**Note:** Implementation details and "how" questions → CONTEXT.md (not requirements)
+**Note:** Ideas for future phases → Deferred Ideas section (not requirements now)
+**Only** add to authoritative if user explicitly stated a new capability they want.
+</step>
+
 <step name="auto_advance">
 Check for auto-advance trigger:
 

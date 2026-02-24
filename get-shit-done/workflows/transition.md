@@ -167,6 +167,16 @@ cat .planning/phases/XX-current/*-SUMMARY.md
 3. **Requirements emerged?**
    - Any new requirements discovered during building?
    - Add to Active: `- [ ] [New requirement]`
+   
+   **IMPORTANT: Also update REQUIREMENTS.authoritative.md**
+   
+   If new requirements were added to Active in PROJECT.md, they must also be added to REQUIREMENTS.authoritative.md:
+   1. Read current REQUIREMENTS.authoritative.md
+   2. Add new requirements with proper REQ-IDs (continue numbering)
+   3. Update traceability section to map to current phase
+   4. Commit: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: add authoritative requirements from phase ${PHASE} transition" --files .planning/REQUIREMENTS.authoritative.md`
+   
+   **This keeps PROJECT.md Active and REQUIREMENTS.authoritative.md in sync**
 
 4. **Decisions to log?**
    - Extract decisions from SUMMARY.md files

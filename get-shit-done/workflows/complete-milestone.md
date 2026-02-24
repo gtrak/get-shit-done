@@ -199,6 +199,17 @@ cat .planning/phases/*-*/*-SUMMARY.md
 
 3. **Requirements audit:**
 
+   **Step A: Sync new authoritative requirements from this milestone**
+   
+   Read the milestone's archived `milestones/v[X.Y]-REQUIREMENTS.authoritative.md`:
+   - Extract all requirements (REQ-IDs and descriptions)
+   - Compare to what was in PROJECT.md Active at start of milestone
+   - NEW authoritative requirements created during this milestone:
+     - If shipped (covered by completed phases) → Add to Validated: `- ✓ [Requirement] — v[X.Y]`
+     - If not shipped → Add to Active: `- [ ] [Requirement]`
+   
+   **This ensures PROJECT.md stays in sync with REQUIREMENTS.authoritative.md**
+
    **Validated section:**
    - All Active requirements shipped this milestone → Move to Validated
    - Format: `- ✓ [Requirement] — v[X.Y]`
