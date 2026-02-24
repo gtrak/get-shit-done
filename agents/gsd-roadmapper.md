@@ -437,10 +437,18 @@ Total v1: 11 requirements
 ## Step 3: Load Derived Requirements (if any)
 
 Parse REQUIREMENTS.derived.md:
-- Note any technical/derived requirements
-- These inform implementation but don't drive phase structure
+- Research-derived features (from agent research) → these are MORE FLEXIBLE
+- Implementation requirements (from planning) → technical needs discovered during planning
+- These complement authoritative requirements but may be adjusted
 
-## Step 4: Load Research Context (if exists)
+## Step 4: Load Authoritative Requirements
+
+Parse REQUIREMENTS.authoritative.md:
+- These are USER requirements (less flexible)
+- Must be covered by phases
+- Each requirement must map to exactly one phase
+
+## Step 5: Load Research Context (if exists)
 
 If research/SUMMARY.md provided:
 - Extract suggested phase structure from "Implications for Roadmap"
@@ -449,7 +457,7 @@ If research/SUMMARY.md provided:
 
 Research informs phase identification but requirements drive coverage.
 
-## Step 4: Identify Phases
+## Step 6: Identify Phases
 
 Apply phase identification methodology:
 1. Group requirements by natural delivery boundaries
@@ -457,7 +465,7 @@ Apply phase identification methodology:
 3. Create phases that complete coherent capabilities
 4. Check depth setting for compression guidance
 
-## Step 5: Derive Success Criteria
+## Step 7: Derive Success Criteria
 
 For each phase, apply goal-backward:
 1. State phase goal (outcome, not task)
@@ -465,7 +473,7 @@ For each phase, apply goal-backward:
 3. Cross-check against requirements
 4. Flag any gaps
 
-## Step 5.5: Assign Provenance
+## Step 7.5: Assign Provenance
 
 For each phase, determine provenance:
 - **[A] Authoritative-driven**: Phase derived from human-defined requirements in REQUIREMENTS.authoritative.md
@@ -475,7 +483,7 @@ Add to each phase:
 - `Provenance`: [A] or [D]
 - `DerivedFrom`: List of authoritative requirement IDs this phase addresses
 
-## Step 6: Validate Coverage
+## Step 8: Validate Coverage
 
 Verify 100% requirement mapping:
 - Every v1 requirement → exactly one phase
@@ -483,7 +491,7 @@ Verify 100% requirement mapping:
 
 If gaps found, include in draft for user decision.
 
-## Step 7: Write Files Immediately
+## Step 9: Write Files Immediately
 
 **Write files first, then return.** This ensures artifacts persist even if context is lost.
 
@@ -497,11 +505,11 @@ If gaps found, include in draft for user decision.
 
 Files on disk = context preserved. User can review actual files.
 
-## Step 8: Return Summary
+## Step 10: Return Summary
 
 Return `## ROADMAP CREATED` with summary of what was written.
 
-## Step 9: Handle Revision (if needed)
+## Step 11: Handle Revision (if needed)
 
 If orchestrator provides revision feedback:
 - Parse specific concerns
@@ -525,7 +533,8 @@ When files are written and returning to orchestrator:
 - .planning/STATE.md
 
 **Updated:**
-- .planning/REQUIREMENTS.md (traceability section)
+- .planning/REQUIREMENTS.authoritative.md (traceability section)
+- .planning/REQUIREMENTS.derived.md (if any derived requirements)
 
 ### Summary
 
@@ -577,7 +586,8 @@ After incorporating user feedback and updating files:
 **Files updated:**
 - .planning/ROADMAP.md
 - .planning/STATE.md (if needed)
-- .planning/REQUIREMENTS.md (if traceability changed)
+- .planning/REQUIREMENTS.authoritative.md (traceability)
+- .planning/REQUIREMENTS.derived.md (if updated)
 
 ### Updated Summary
 

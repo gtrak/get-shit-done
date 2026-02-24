@@ -195,37 +195,69 @@ Display key findings from SUMMARY.md:
 
 Read PROJECT.md: core value, current milestone goals, validated requirements (what exists).
 
-**If research exists:** Read FEATURES.md, extract feature categories.
+**CRITICAL: Distinguish between authoritative and derived requirements:**
 
-Present features by category:
+| Type | Source | Flexibility |
+|------|--------|-------------|
+| REQUIREMENTS.authoritative | You (the user) | Less flexible — these are your explicit requirements |
+| REQUIREMENTS.derived | Agent research discovery | More flexible — these are capabilities found during research |
+
+---
+
+### Step 9a: Extract Research-Derived Features (if research exists)
+
+**If research exists:** Read FEATURES.md and extract feature categories.
+
+These research-derived features will go to **REQUIREMENTS.derived** (more flexible):
+
+Present research findings:
 ```
-## [Category 1]
-**Table stakes:** Feature A, Feature B
-**Differentiators:** Feature C, Feature D
-**Research notes:** [any relevant notes]
+## Research-Derived Features → REQUIREMENTS.derived
+
+### [Category 1]
+- **DER-CAT1-01**: Feature from research [notes]
+- **DER-CAT1-02**: Feature from research [notes]
+
+### [Category 2]
+- **DER-CAT2-01**: Feature from research [notes]
 ```
 
-**If no research:** Gather requirements through conversation. Ask: "What are the main things users need to do with [new features]?" Clarify, probe for related capabilities, group into categories.
+Track these separately — they'll become derived requirements.
+
+---
+
+### Step 9b: Gather YOUR Requirements
+
+**Now ask what YOU want:**
+
+Ask: "What are the main things users need to do with [new features]?"
+- Clarify, probe for related capabilities, group into categories
+- These go to **REQUIREMENTS.authoritative** (less flexible — from you)
 
 **Scope each category** via AskUserQuestion (multiSelect: true, header max 12 chars):
 - "[Feature 1]" — [brief description]
 - "[Feature 2]" — [brief description]
 - "None for this milestone" — Defer entire category
 
-Track: Selected → this milestone. Unselected table stakes → future. Unselected differentiators → out of scope.
+Track: Selected → authoritative. Unselected → future.
 
 **Identify gaps** via AskUserQuestion:
-- "No, research covered it" — Proceed
+- "No, that's complete" — Proceed
 - "Yes, let me add some" — Capture additions
 
-**Generate REQUIREMENTS.authoritative.md:**
+**If no research:**
+- Gather requirements through conversation
+- All go to REQUIREMENTS.authoritative (all are from you)
+
+---
+
+### Step 9c: Write REQUIREMENTS.authoritative.md
+
+Write YOUR requirements (from Step 9b):
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - Future Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
 - Traceability section (empty, filled by roadmap)
-
-**Initialize empty REQUIREMENTS.derived.md:**
-- Header only with "Implementation Requirements (None yet)"
 
 **REQ-ID format:** `[CATEGORY]-[NUMBER]` (AUTH-01, NOTIF-02). Continue numbering from existing.
 
@@ -237,35 +269,66 @@ Good requirements are:
 - **Atomic:** One capability per requirement (not "User can login and manage profile")
 - **Independent:** Minimal dependencies on other requirements
 
-Present FULL requirements list for confirmation:
+Present YOUR requirements for confirmation:
 
 ```
-## Milestone v[X.Y] Requirements
+## Milestone v[X.Y] Requirements (Authoritative)
 
 ### [Category 1]
-- [ ] **CAT1-01**: User can do X
-- [ ] **CAT1-02**: User can do Y
+- [ ] **CAT1-01**: [User requirement from you]
+- [ ] **CAT1-02**: [User requirement from you]
 
 ### [Category 2]
-- [ ] **CAT2-01**: User can do Z
+- [ ] **CAT2-01**: [User requirement from you]
 
-Does this capture what you're building? (yes / adjust)
+Does this capture what you want to build? (yes / adjust)
 ```
 
 If "adjust": Return to scoping.
 
-**Initialize empty derived requirements:**
+---
 
-Create `.planning/REQUIREMENTS.derived.md` with header only:
+### Step 9d: Write REQUIREMENTS.derived.md
+
+Write RESEARCH-DERIVED features (from Step 9a):
+
+Create `.planning/REQUIREMENTS.derived.md`:
 ```markdown
 # Derived Requirements: [Project Name]
 
 **Generated:** [date]
-**Source:** REQUIREMENTS.authoritative.md
+**Source:** Agent research (FEATURES.md, SUMMARY.md)
+**Note:** These are capabilities discovered during research. More flexible than authoritative.
+
+## Research-Derived Features
+
+### [Category 1]
+- [ ] **DER-CAT1-01**: [Feature from research]
+- [ ] **DER-CAT1-02**: [Feature from research]
+
+### [Category 2]
+- [ ] **DER-CAT2-01**: [Feature from research]
 
 ## Implementation Requirements
 
 (None yet — generated during planning)
+
+---
+
+*Generated: [date]*
+```
+
+**If NO research exists:**
+- Create REQUIREMENTS.derived.md with header only:
+```markdown
+# Derived Requirements: [Project Name]
+
+**Generated:** [date]
+**Source:** N/A (no research phase)
+
+## Implementation Requirements
+
+(None yet)
 
 ---
 
@@ -311,7 +374,7 @@ Create roadmap for milestone v[X.Y]:
 5. Validate 100% coverage
 6. Include provenance tags ([A] for authoritative-driven)
 7. Include justification (Forces, Fails if removed)
-8. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.authoritative.md traceability)
+8. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.authoritative.md and REQUIREMENTS.derived.md traceability)
 9. Return ROADMAP CREATED with summary
 
 Write files first, then return.
