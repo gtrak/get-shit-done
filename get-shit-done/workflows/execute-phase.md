@@ -468,6 +468,12 @@ STATE.md tracks: last completed plan, current wave, pending checkpoints.
 
 Run antagonistic code review after each plan completes to find issues, rank by severity, and iterate until fixed.
 
+**Policy:**
+- **Critical:** MUST fix before proceeding
+- **Major:** MUST fix before proceeding  
+- **Minor (trivially fixable):** MUST fix before proceeding
+- **Minor (non-trivial):** Track but can proceed
+
 **Step 1: Prepare review context**
 
 Find the most recently modified SUMMARY:
@@ -553,8 +559,16 @@ If "Status: ISSUES_RESOLVED":
 - All issues fixed → continue execution
 - Commit: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(${PHASE_NUM}-${PLAN_SLUG}): code review passed" --files "${REVIEW_FILE}"`
 
-If issues remain:
-- Extract issues → spawn fix agent
+**If ANY issues remain (Critical, Major, or Minor trivially fixable):**
+- MUST fix before proceeding
+- Spawn fix agent immediately
+- Repeat review cycle until all Critical, Major, and trivially fixable Minor = 0
+
+**If Minor (non-trivial) issues remain:**
+- Track in CODE-REVIEW.md
+- Can proceed without fixing
+
+
 
 **Step 5: Spawn fix agent (if issues remain)**
 
@@ -589,15 +603,13 @@ Fix code review issues:
 
 **After 5 cycles with issues:**
 
-Present to user:
-```
-Code review: N issues remain after 5 cycles.
+**If Critical, Major, or trivially fixable Minor issues remain:**
+- CANNOT proceed - these must be fixed
+- Present: "Critical/Major/trivially-fixable Minor issues remain after 5 cycles. Must fix before proceeding."
+- Options: (1) Fix now manually, (2) Abort
 
-Options:
-1. Continue anyway
-2. Abort
-3. One more cycle
-```
+**If only non-trivial Minor issues remain:**
+- Proceed with note in CODE-REVIEW.md
 </code_review_cycle>
 
 </resumption>
