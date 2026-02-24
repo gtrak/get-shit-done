@@ -140,14 +140,24 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
 4. **Report completion — spot-check claims first:**
 
-   For each SUMMARY.md:
+   **FIRST: Check if SUMMARY.md exists (plan completed successfully)**
+   ```
+   PHASE_DIR=$(ls -td .planning/phases/*/ 2>/dev/null | head -1)
+   SUMMARY_FILE=$(ls -t "$PHASE_DIR"*-SUMMARY.md 2>/dev/null | head -1)
+   ```
+   
+   **If NO SUMMARY.md exists:**
+   - Plan was interrupted/failed → Route to step 5 (failure handling)
+   - Do NOT proceed to code review
+   
+   **If SUMMARY.md exists:**
    - Verify first 2 files from `key-files.created` exist on disk
    - Check `git log --oneline --all --grep="{phase}-{plan}"` returns ≥1 commit
    - Check for `## Self-Check: FAILED` marker
-
+   
    If ANY spot-check fails: report which plan failed, route to failure handler — ask "Retry plan?" or "Continue with remaining waves?"
 
-   If pass:
+   **If all checks pass AND SUMMARY.md exists:**
 
    **Run code review → see `<code_review_cycle>` section below.**
 
@@ -454,11 +464,13 @@ STATE.md tracks: last completed plan, current wave, pending checkpoints.
 <code_review_cycle>
 ## Code Review Cycle (max 5 cycles)
 
+**PREREQUISITE: SUMMARY.md must exist (plan completed successfully)**
+
 Run antagonistic code review after each plan completes to find issues, rank by severity, and iterate until fixed.
 
 **Step 1: Prepare review context**
 
-The plan just completed and created SUMMARY.md. Find the most recently modified SUMMARY:
+Find the most recently modified SUMMARY:
 
 ```bash
 # Find the phase directory (most recently modified)
