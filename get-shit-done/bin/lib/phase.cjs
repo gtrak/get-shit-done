@@ -7,6 +7,12 @@ const path = require('path');
 const { normalizePhaseName, comparePhaseNum, findPhaseInternal, getArchivedPhaseDirs, generateSlugInternal, output, error } = require('./core.cjs');
 const { extractFrontmatter } = require('./frontmatter.cjs');
 
+/** Escape special regex characters in a string */
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+
 function cmdPhasesList(cwd, options, raw) {
   const phasesDir = path.join(cwd, '.planning', 'phases');
   const { type, phase, includeArchived } = options;
@@ -780,20 +786,20 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
 
           // Update checkbox: - [ ] **REQ-ID** → - [x] **REQ-ID**
           reqContent = reqContent.replace(
-            new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${reqId}\\*\\*)`, 'gi'),
+            new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${escapeRegExp(reqId)}\\*\\*)`, 'gi'),
             '$1x$2'
           );
           reqContent = reqContent.replace(
-            new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${idToMatch}\\*\\*)`, 'gi'),
+            new RegExp(`(-\\s*\\[)[ ](\\]\\s*\\*\\*${escapeRegExp(idToMatch)}\\*\\*)`, 'gi'),
             '$1x$2'
           );
           // Update traceability table: | REQ-ID | Phase N | Pending | → | REQ-ID | Phase N | Complete |
           reqContent = reqContent.replace(
-            new RegExp(`(\\|\\s*${reqId}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
+            new RegExp(`(\\|\\s*${escapeRegExp(reqId)}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
             '$1 Complete $2'
           );
           reqContent = reqContent.replace(
-            new RegExp(`(\\|\\s*${idToMatch}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
+            new RegExp(`(\\|\\s*${escapeRegExp(idToMatch)}\\s*\\|[^|]+\\|)\\s*Pending\\s*(\\|)`, 'gi'),
             '$1 Complete $2'
           );
         }
