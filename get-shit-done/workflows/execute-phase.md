@@ -147,8 +147,24 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    ```
    
    **If NO SUMMARY.md exists:**
-   - Plan was interrupted/failed → Route to step 5 (failure handling)
-   - Do NOT proceed to code review
+   - Check if auto-advance is enabled:
+     ```bash
+     AUTO_CFG=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-get workflow.auto_advance 2>/dev/null || echo "false")
+     ```
+   - **If AUTO_CFG is "true" (autonomous mode):**
+     - This is a failure - executor agent crashed/interrupted
+     - Auto-retry up to 5 times before giving up:
+       1. Increment retry count for this plan in STATE.md
+       2. If retry_count < 5:
+          - Re-delegate same plan to executor agent
+          - Re-check for SUMMARY.md (loop back)
+       3. If retry_count >= 5:
+          - Report: "Plan failed after 5 auto-retries"
+          - Ask user: "Retry plan?" / "Continue?" / "Stop?"
+   - **If AUTO_CFG is "false" (manual mode):**
+     - Ask user immediately: "Retry plan?" / "Continue?" / "Stop?"
+   - Do NOT proceed to code review or next wave until SUMMARY.md exists
+
    
    **If SUMMARY.md exists:**
    - Verify first 2 files from `key-files.created` exist on disk
@@ -180,7 +196,14 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    **Known Claude Code bug (classifyHandoffIfNeeded):** If an agent reports "failed" with error containing `classifyHandoffIfNeeded is not defined`, this is a Claude Code runtime bug — not a GSD or agent issue. The error fires in the completion handler AFTER all tool calls finish. In this case: run the same spot-checks as step 4 (SUMMARY.md exists, git commits present, no Self-Check: FAILED). If spot-checks PASS → treat as **successful**. If spot-checks FAIL → treat as real failure below.
 
-   For real failures: report which plan failed → ask "Continue?" or "Stop?" → if continue, dependent plans may also fail. If stop, partial completion report.
+   **For real failures (after auto-retry exhausted or manual mode):**
+   - Report which plan failed and retry count
+   - Ask user: "Retry plan?" / "Continue?" / "Stop?"
+   - If "Continue": dependent plans may also fail
+   - If "Stop": partial completion report
+
+   **Note:** Auto-retry (up to 5x) only happens in autonomous mode. In manual mode, user is asked immediately.
+
 
 6. **Execute checkpoint plans between waves** — see `<checkpoint_handling>`.
 
