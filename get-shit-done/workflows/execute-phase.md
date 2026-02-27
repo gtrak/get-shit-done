@@ -177,6 +177,13 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    **Run code review → see `<code_review_cycle>` section below.**
 
+**MUST RUN: Execute code review cycle now**
+
+Follow ALL steps in the `<code_review_cycle>` section below (lines 487-636).
+This is MANDATORY — do NOT skip or defer it.
+
+After code review completes, then proceed to the wave complete message below.
+
    ```
    ---
    ## Wave {N} Complete
