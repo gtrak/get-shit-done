@@ -529,16 +529,6 @@ PLAN_NAME="$PLAN_SLUG"
 PLAN_FILE="$PHASE_DIR${PLAN_BASE}-PLAN.md"
 REVIEW_FILE="$PHASE_DIR${PLAN_BASE}-CODE-REVIEW.md"
 
-# Get git diff for this plan
-PLAN_COMMITS=$(git log --oneline --all --grep="${PHASE_NUM}-${PLAN_SLUG}" 2>/dev/null | head -20)
-if [ -n "$PLAN_COMMITS" ]; then
-  FIRST_COMMIT=$(git log --oneline --all --grep="${PHASE_NUM}-${PLAN_SLUG}" --reverse 2>/dev/null | head -1 | cut -d' ' -f1)
-  LAST_COMMIT=$(git log --oneline --all --grep="${PHASE_NUM}-${PLAN_SLUG}" 2>/dev/null | head -1 | cut -d' ' -f1)
-  GIT_DIFF=$(git diff ${FIRST_COMMIT}^..${LAST_COMMIT} 2>/dev/null)
-else
-  GIT_DIFF=$(git diff HEAD~50..HEAD 2>/dev/null)
-fi
-
 echo "=== Code Review: Phase $PHASE_NUM, Plan: $PLAN_NAME ==="
 ```
 
@@ -560,10 +550,6 @@ Task(prompt="
 - ${SUMMARY_FILE}
 - ${PREVIOUS_REVIEW:+${REVIEW_FILE}}
 </files_to_read>
-
-<git_diff>
-${GIT_DIFF}
-</git_diff>
 
 <instructions>
 Review implemented code for phase ${PHASE_NUM}, plan '${PLAN_NAME}'.
