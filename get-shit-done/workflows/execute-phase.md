@@ -175,14 +175,30 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    **If all checks pass AND SUMMARY.md exists:**
 
-   **Run code review → see `<code_review_cycle>` section below.**
+   **STEP 4A: MANDATORY CODE REVIEW (BLOCKING)**
 
-**MUST RUN: Execute code review cycle now**
+   ⚠️  **CRITICAL: DO NOT SKIP THIS STEP** ⚠️
 
-Follow ALL steps in the `<code_review_cycle>` section below (lines 487-636).
-This is MANDATORY — do NOT skip or defer it.
+   You MUST run the code review cycle BEFORE doing anything else.
+   You CANNOT proceed to Wave Complete message or next wave until code review finishes.
 
-After code review completes, then proceed to the wave complete message below.
+   **Execute the `<code_review_cycle>` section below (lines 487-636) NOW:**
+
+   1. Spawn gsd-code-reviewer agent
+   2. Wait for CODE-REVIEW.md to be created
+   3. Check if issues found - if yes, spawn fix agent
+   4. Repeat until ISSUES_RESOLVED or max cycles reached
+
+   **VERIFICATION - Code review completed?**
+
+   Before proceeding, confirm:
+   - CODE-REVIEW.md file exists for this plan
+   - Review status is ISSUES_RESOLVED (or only non-trivial Minor issues remain)
+
+   If NO → STOP and complete code review now
+   If YES → Continue to Step 4B
+
+   **STEP 4B: Wave Complete Message** (ONLY after code review passes)
 
    ```
    ---
@@ -190,14 +206,17 @@ After code review completes, then proceed to the wave complete message below.
 
    **{Plan ID}: {Plan Name}**
    {What was built — from SUMMARY.md}
+   Code review: PASSED ({N} cycles)
+
    {Notable deviations, if any}
 
    {If more waves: what this enables for next wave}
    ---
    ```
 
-   - Bad: "Wave 2 complete. Proceeding to Wave 3."
-   - Good: "Terrain system complete — 3 biome types, height-based texturing, physics collision meshes. Vehicle physics (Wave 3) can now reference ground surfaces."
+   **Self-check before proceeding:** Did you run code review? Y/N
+   **If N:** Go back and run it now - DO NOT proceed.
+
 
 5. **Handle failures:**
 
@@ -492,11 +511,19 @@ STATE.md tracks: last completed plan, current wave, pending checkpoints.
 
 
 <code_review_cycle>
-## Code Review Cycle (max 5 cycles)
+## 🚨 Code Review Cycle (max 5 cycles) - MANDATORY
 
-**PREREQUISITE: SUMMARY.md must exist (plan completed successfully)**
+**⚠️ THIS IS NOT OPTIONAL - YOU MUST COMPLETE THIS BEFORE PROCEEDING ⚠️**
 
 Run antagonistic code review after each plan completes to find issues, rank by severity, and iterate until fixed.
+
+**BLOCKING ENFORCEMENT:**
+- You CANNOT proceed to next wave until this completes
+- You CANNOT skip this even if plan 'looks good'
+- You CANNOT defer this to 'later'
+- This MUST run immediately after SUMMARY.md is confirmed to exist
+
+**PREREQUISITE:** SUMMARY.md must exist (plan completed successfully)
 
 **Policy:**
 - **Critical:** MUST fix before proceeding
@@ -626,6 +653,19 @@ Fix code review issues:
 
 **If only non-trivial Minor issues remain:**
 - Proceed with note in CODE-REVIEW.md
+
+**🎯 STEP 7: FINAL COMPLETION CHECKPOINT**
+
+Before exiting code_review_cycle, you MUST confirm:
+
+- [ ] CODE-REVIEW.md file exists
+- [ ] Review contains Status: line (ISSUES_RESOLVED, or issues listed)
+- [ ] If issues were found, fix agent was spawned and completed
+- [ ] All Critical/Major/trivial-Minor issues are resolved
+
+**ONLY after ALL checkboxes are marked complete can you proceed.**
+
+✅ **Code review cycle COMPLETE** - You may now proceed to Step 4B (Wave Complete)
 </code_review_cycle>
 
 </resumption>
